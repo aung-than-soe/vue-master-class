@@ -1,9 +1,18 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
-import vueRouter from 'unplugin-vue-router/vite'
+import autoprefixer from 'autoprefixer'
+import tailwind from 'tailwindcss'
+import AutoImport from 'unplugin-auto-import/vite'
+import FormKit from 'unplugin-formkit/vite'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import { VueRouterAutoImports } from 'unplugin-vue-router'
+import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig, loadEnv } from 'vite'
-import vueDevTools from 'vite-plugin-vue-devtools'
+
+// import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -16,9 +25,54 @@ export default defineConfig(({ mode }) => {
   )
   const supabase = `import.meta.env.SUPABASE`
   return {
-    plugins: [vueRouter(), vue(), vueDevTools()],
+    plugins: [
+      VueRouter({
+        dts: './types/typed-router.d.ts'
+      }),
+      Icons({
+        compiler: 'vue3',
+        autoInstall: true
+      }),
+      FormKit({
+        configFile: './formkit.config.ts'
+      }),
+      Components({
+        dts: './types/components.d.ts',
+        resolvers: [IconsResolver()]
+      }),
+      AutoImport({
+        include: [
+          /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
+          /\.vue$/,
+          /\.vue\?vue/, // .vue
+          /\.vue\.[tj]sx?\?vue/, // .vue (vue-loader with experimentalInlineMatchResource enabled)
+          /\.md$/ // .md
+        ],
+        imports: [
+          'vue',
+          VueRouterAutoImports,
+          {
+            pinia: ['defineStore', 'storeToRefs', 'acceptHMRUpdate']
+          },
+          {
+            'vue-meta': ['useMeta']
+          }
+        ],
+        dts: './types/auto-imports.d.ts',
+        viteOptimizeDeps: true,
+        dirs: ['src/stores/**', 'src/composables/**']
+      }),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: (element) => element.startsWith('iconify-icon')
+          }
+        }
+      })
+      // vueDevTools()
+    ],
     server: {
-      port: 3000
+      port: 4000
     },
     define: {
       __APP_VERSION__: JSON.stringify(env['APP_VERSION']),
@@ -28,6 +82,11 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
+    },
+    css: {
+      postcss: {
+        plugins: [tailwind(), autoprefixer()]
       }
     }
   }

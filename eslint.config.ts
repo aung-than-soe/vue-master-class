@@ -11,7 +11,8 @@ import tseslint from 'typescript-eslint'
 
 export default defineConfigWithVueTs(
   {
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    name: 'include patterns',
+    files: ['**/*.{ts,cts,mts,tsx,vue}'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 'latest'
@@ -19,15 +20,21 @@ export default defineConfigWithVueTs(
     }
   },
   {
-    name: '.',
+    name: 'ignore patterns',
     ignores: [
       '**/dist/**',
       '**/dist-ssr/**',
       '**/coverage/**',
-      '.gitignore',
-      '.gitattributes',
       '**/public/**',
-      '**/.vscode/**'
+      '**/.vscode/**',
+      '!**/eslint.config.ts',
+      '**/types.ts',
+      '**/tailwind.config.js',
+      '**/stylelint.config.js',
+      '**/.gitignore',
+      '**/.gitattributes',
+      '**/components/ui/**',
+      '**/lib/utils.ts'
     ]
   },
   pluginVue.configs['flat/essential'],
@@ -38,11 +45,14 @@ export default defineConfigWithVueTs(
     plugins: {
       '@typescript-eslint': tseslint.plugin,
       '@stylistic': stylistic
-    }
+    },
+    extends: []
   },
   {
     rules: {
-      'vue/multi-word-component-names': 0
+      'vue/multi-word-component-names': 0,
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'warn'
     }
   }
 )
